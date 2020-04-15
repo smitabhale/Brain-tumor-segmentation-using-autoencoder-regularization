@@ -119,23 +119,6 @@ input_shape = (4, 96, 112, 112)
 # input_shape = (4, 155, 240, 240)
 output_channels = 3
 batch_size = 1
-# data = np.empty((len(data_paths[:4]),) + input_shape, dtype=np.float32)
-# labels = np.empty((len(data_paths[:4]), output_channels) + input_shape[1:], dtype=np.uint8)
-# 
-# total = len(data_paths[:4])
-# step = 25 / total
-# 
-# for i, imgs in enumerate(data_paths[:4]):
-#     try:
-#         data[i] = np.array([preprocess(read_img(imgs[m]), input_shape[1:]) for m in ['t1', 't2', 't1ce', 'flair']], dtype=np.float32)
-#         labels[i] = preprocess_label(read_img(imgs['seg']), input_shape[1:])[None, ...]
-#         
-#         # Print the progress bar
-#         print('\r' + 'Progress: ' + "[%s %s]"%('=' * int((i+1) * step), ' ' * (24 - int((i+1) * step))) + "(%s percentage)"%(math.ceil((i+1) * 100 / (total))),
-#             end='')
-#     except Exception as e:
-#         print('Something went wrong with %s, skipping...\n Exception:\n%s'%(imgs["t1"], str(e)))
-#         continue
 
 train_path = data_paths[0:275]
 val_path = data_paths[275:]
@@ -148,25 +131,11 @@ val_generator = GenerateData(val_path, input_shape, output_channels, batch_size)
 nb_epoch = 10
 model = build_model(input_shape=input_shape, output_channels=3)
 check = ModelCheckpoint("weights/weights.epoch:{epoch:02d}-loss:{loss:.5f}-dice:{dice_coefficient:.5f}.hdf5", monitor='dice_coefficient', verbose=1, save_best_only=True, save_weights_only=True, mode='max')
-# model.fit_generator(generator=train_generator,
-#                     validation_data = val_generator,
-#                     use_multiprocessing=False,
-#                     workers=1,
-#                     verbose=0,
-#                     epochs=nb_epoch,
-#                     steps_per_epoch=len(train_generator),
-#                     callbacks=[check,TQDMCallback()],)
-# model.fit(data, labels, batch_size=1, epochs=5)
-# preds = model.predict(np.array([data[0]]))
-
-# pred = preds[0]
-# print(pred.shape)
-# print(pred[0,:,:,:].shape)
-# pred[:, 50,:,:] #50th slice 
-# img = pred.sum(axis=0)
-# img = img.sum(axis=0)
-# img = (img>1).astype(np.uint8)
-# print(img.shape)
-# print(np.unique(img))
-# print(img.sum())
-# plt.imshow(pred[:, 50,:,:], cmap='Greys_r')
+model.fit_generator(generator=train_generator,
+                    validation_data = val_generator,
+                    use_multiprocessing=False,
+                    workers=1,
+                    verbose=0,
+                    epochs=nb_epoch,
+                    steps_per_epoch=len(train_generator),
+                    callbacks=[check,TQDMCallback()],)
